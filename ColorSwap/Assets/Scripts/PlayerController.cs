@@ -2,18 +2,19 @@ using UnityEngine;
 
 public class PlayerController : MonoBehaviour
 {
-    public float jumpForce = 0.8f; //jump height
-    public SpriteRenderer sr;
+    public float _speed;
     private Rigidbody2D rb;
-    private Color[] colors = new Color[4];
+    public SpriteRenderer sr;
     private int currentIndex = 0;
+    private Color[] colors = new Color[4];
+    [SerializeField] private GameObject explosionPrefab;
 
 
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
         sr = GetComponent<SpriteRenderer>();
-
+        rb.linearVelocity = new Vector2(_speed, rb.linearVelocity.y);
 
         ColorUtility.TryParseHtmlString("#75D5FD", out colors[0]);
         ColorUtility.TryParseHtmlString("#B76CFD", out colors[1]);
@@ -21,7 +22,6 @@ public class PlayerController : MonoBehaviour
         ColorUtility.TryParseHtmlString("#011FFD", out colors[3]);
 
         sr.color = colors[currentIndex];
-        Jump();
     }
 
     // Update is called once per frame
@@ -30,20 +30,8 @@ public class PlayerController : MonoBehaviour
         if (Input.GetMouseButtonDown(0)) // Tap or Click to swap color & jump
         {
             ChangeColor();
-            Jump();
         }
-
-        float horizontalInput = Input.GetAxis("Horizontal");
-        transform.position += new Vector3(horizontalInput * 1.5f * Time.deltaTime, 0, 0);
-
-        // Prevent the ball from going off-screen
-        /*if (transform.position.y > 5)
-        {
-            transform.position = new Vector3(transform.position.x, 5, transform.position.z);
-        }*/
-        transform.position = new Vector3(Mathf.Clamp(transform.position.x, -2.5f, 2.5f), Mathf.Clamp(transform.position.y, 2, 5), transform.position.z);
     }
-
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
@@ -53,8 +41,10 @@ public class PlayerController : MonoBehaviour
 
             if (obstacleColor.color == sr.color)
             {
+                GameObject explosion = Instantiate(explosionPrefab, collision.transform.position, Quaternion.identity);
                 ScoreManager.instance.AddScore();
                 Destroy(collision.gameObject);
+                Destroy(explosion, 1f);
             }
             else
             {
@@ -62,16 +52,23 @@ public class PlayerController : MonoBehaviour
                 Time.timeScale = 0;
             }
         }
+        if (collision.CompareTag("Trigger"))
+        {
+            if(rb.linearVelocity.x > 0.1f)
+            {
+                print("hmm");
+                rb.linearVelocity = -new Vector2(_speed, rb.linearVelocity.y);
+            }
+            else
+            {
+                rb.linearVelocity = new Vector2(_speed, rb.linearVelocity.y);
+            }
+            _speed += 0.05f;
+        }
     }
     void ChangeColor()
     {
         currentIndex = (currentIndex + 1) % colors.Length;  // Cycle through all colors
         sr.color = colors[currentIndex];  // Apply new color
-        Debug.Log("Color changed to: " + sr.color);  // Debugging (check Console)
-    }
-
-    void Jump()
-    {
-        rb.linearVelocity = new Vector2(rb.linearVelocity.x, jumpForce); // Set velocity only in Y direction
     }
 }
