@@ -2,12 +2,15 @@ using UnityEngine;
 
 public class PlayerController : MonoBehaviour
 {
-    public float _speed;
+    public float _speed = 2f;
     private Rigidbody2D rb;
     public SpriteRenderer sr;
     private int currentIndex = 0;
     private Color[] colors = new Color[4];
     [SerializeField] private GameObject explosionPrefab;
+
+    private float maxSpeed = 6f;
+    private int lastScoreCheckpoint = 0;
 
 
     void Start()
@@ -31,8 +34,19 @@ public class PlayerController : MonoBehaviour
         {
             ChangeColor();
         }
+        AdjustSpeedBasedOnScore();
     }
+    private void AdjustSpeedBasedOnScore()
+    {
+        int currentScore = ScoreManager.instance.score;
 
+        if(currentScore >= lastScoreCheckpoint + 5)
+        {
+            _speed = Mathf.Min(_speed + 0.6f, maxSpeed);
+            rb.linearVelocity = new Vector2(_speed * Mathf.Sign(rb.linearVelocity.x), rb.linearVelocity.y);
+            lastScoreCheckpoint = currentScore;
+        }
+    }
     private void OnTriggerEnter2D(Collider2D collision)
     {
         if (collision.CompareTag("Obstacle"))
@@ -63,7 +77,6 @@ public class PlayerController : MonoBehaviour
             {
                 rb.linearVelocity = new Vector2(_speed, rb.linearVelocity.y);
             }
-            _speed += 0.05f;
         }
     }
     void ChangeColor()
