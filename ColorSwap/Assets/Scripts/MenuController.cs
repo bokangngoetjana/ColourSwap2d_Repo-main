@@ -3,9 +3,13 @@ using UnityEngine.SceneManagement;
 
 public class MenuController : MonoBehaviour
 {
-    public void OnStartClick()
+    public void OnStartSidebars()
     {
         SceneManager.LoadScene("SampleScene");
+    }
+    public void OnStartClick()
+    {
+        SceneManager.LoadScene("ClassicMode");
     }
     public void OnExitClick()
     {
