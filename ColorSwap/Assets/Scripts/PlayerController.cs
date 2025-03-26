@@ -2,6 +2,7 @@
 
 public class PlayerController : MonoBehaviour
 {
+    public bool isHorizontal = true;
     public float verticalSpeed = 2f;
     public float horizontalSpeed = 3f;
     private Rigidbody2D rb;
@@ -25,13 +26,13 @@ public class PlayerController : MonoBehaviour
 
         sr.color = colors[currentIndex];
 
-        if (GameModeManager.isClassicMode)
+        if (!isHorizontal)
         {
-            rb.linearVelocity = new Vector2(0, verticalSpeed); // Move up only
+            rb.linearVelocity = new Vector2(rb.linearVelocity.y, verticalSpeed); // Move up only
         }
         else
         {
-            rb.linearVelocity = new Vector2(verticalSpeed, rb.linearVelocity.y); // Sidebars Mode
+            rb.linearVelocity = new Vector2(horizontalSpeed, rb.linearVelocity.y); // Sidebars Mode
         }
     }
 
@@ -52,9 +53,6 @@ public class PlayerController : MonoBehaviour
 
     private void HandleClassicModeMovement()
     {
-        float horizontalInput = Input.GetAxis("Horizontal");
-        rb.linearVelocity = new Vector2(horizontalInput * horizontalSpeed, rb.linearVelocity.y); // Allow left/right movement
-
         // Prevent player from moving off-screen
         float screenHalfWidth = Camera.main.orthographicSize * Camera.main.aspect;
         float clampedX = Mathf.Clamp(transform.position.x, -screenHalfWidth + 0.5f, screenHalfWidth - 0.5f);
@@ -104,7 +102,14 @@ public class PlayerController : MonoBehaviour
         // 🔥 FIX: Sidebars Mode Bounce Still Works!
         if (!GameModeManager.isClassicMode && collision.CompareTag("Trigger"))
         {
-            rb.linearVelocity = new Vector2(-rb.linearVelocity.x, rb.linearVelocity.y);
+            if (isHorizontal)
+            {
+                rb.linearVelocity = new Vector2(-rb.linearVelocity.x, rb.linearVelocity.y);
+            }
+            else
+            {
+                rb.linearVelocity = new Vector2(rb.linearVelocity.x, -rb.linearVelocity.y);
+            }
         }
     }
 
